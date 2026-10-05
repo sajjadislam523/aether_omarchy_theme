@@ -53,6 +53,8 @@ Item {
   readonly property color accent: Color.accent
   readonly property color violet: "#9B8CFF"
   readonly property string uiFont: "Adwaita Sans"
+  // Lock-screen clock: false = 12-hour with AM/PM, true = 24-hour.
+  readonly property bool use24h: false
 
   // A dedicated, darker lock wallpaper ships with the theme as lockscreen.png;
   // any other theme falls back to the desktop background (blurred).
@@ -212,16 +214,37 @@ Item {
       y: Math.round(parent.height * 0.12)
       spacing: Math.round(parent.height * 0.012)
 
-      Text {
+      // 12h: large "1:15" with a small, letter-spaced "PM" beside it.
+      Row {
         anchors.horizontalCenter: parent.horizontalCenter
-        textFormat: Text.PlainText
-        text: Qt.formatTime(clock.date, "hh:mm")
-        color: root.textPrimary
-        font.family: root.uiFont
-        font.weight: Font.ExtraLight
-        font.pixelSize: Math.round(Math.min(root.height * 0.2, root.width * 0.14))
-        font.letterSpacing: -2
-        renderType: Text.QtRendering
+        spacing: Math.round(root.height * 0.012)
+
+        Text {
+          id: timeText
+          textFormat: Text.PlainText
+          // Qt only makes "h" 12-hour when "AP" is in the same format, so
+          // compute the hour directly.
+          text: root.use24h ? Qt.formatTime(clock.date, "HH:mm")
+            : ((clock.date.getHours() % 12) || 12) + ":" + Qt.formatTime(clock.date, "mm")
+          color: root.textPrimary
+          font.family: root.uiFont
+          font.weight: Font.ExtraLight
+          font.pixelSize: Math.round(Math.min(root.height * 0.2, root.width * 0.14))
+          font.letterSpacing: -2
+          renderType: Text.QtRendering
+        }
+
+        Text {
+          visible: !root.use24h
+          anchors.baseline: timeText.baseline
+          textFormat: Text.PlainText
+          text: clock.date.getHours() < 12 ? "AM" : "PM"
+          color: root.textSecondary
+          font.family: root.uiFont
+          font.weight: Font.Light
+          font.pixelSize: Math.round(timeText.font.pixelSize * 0.22)
+          font.letterSpacing: 3
+        }
       }
 
       Text {

@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Lock screen clock uses 12-hour time with a small AM/PM. Set `use24h: true`
+  near the top of `config/lockscreen/aether.lock/LockView.qml` for 24-hour.
+
 ## 0.1.0 — 2026-10-05
 
 Initial release.
