@@ -26,9 +26,24 @@ violet used sparingly, hairline borders and soft depth.
 
 ## Screenshots
 
-Screenshots are not committed (they would capture whatever is on screen).
-Take your own with `omarchy capture screenshot`, or preview the lock screen
-safely with `omarchy-shell lock preview` (click to dismiss).
+![AETHER desktop: floating glass bar over the Obsidian Horizon wallpaper](docs/screenshots/desktop.png)
+
+**Terminal:** Ghostty with the AETHER palette, the compact Starship prompt,
+ble.sh syntax highlighting and a dimmed autosuggestion (`git l…`).
+
+![Ghostty with the AETHER prompt and autosuggestions](docs/screenshots/terminal.png)
+
+**Lock screen:** thin 12-hour clock, glass authentication panel, battery and
+now-playing status, and a dedicated darker wallpaper.
+
+![AETHER lock screen](docs/screenshots/lockscreen.png)
+
+| Media panel | Notification |
+|---|---|
+| ![Media panel with artwork, progress and controls](docs/screenshots/media-panel.png) | ![Notification card](docs/screenshots/notification.png) |
+
+*Captured on a 1366×768 laptop panel at scale 1. Preview the lock screen on
+your own machine with `omarchy-shell lock preview` (click to dismiss).*
 
 ## Design tokens
 
@@ -166,8 +181,9 @@ Issues and pull requests are welcome at
 [sajjadislam523/aether_omarchy_theme](https://github.com/sajjadislam523/aether_omarchy_theme). Please test changes with
 `./uninstall.sh && ./install.sh`, check `hyprctl configerrors` and the shell
 log, and preview lock-screen changes with `omarchy-shell lock preview` before
-locking for real. Do not commit screenshots of your desktop, the `backup/`
-folder, or rendered wallpapers.
+locking for real. Do not commit the `backup/` folder or rendered wallpapers.
+Screenshots belong in `docs/screenshots/`. Take them on an empty workspace
+with demo content, so nothing personal (browser tabs, file listings) shows.
 
 ## License
 

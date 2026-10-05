@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- README screenshots: desktop, terminal, lock screen, media panel,
+  notification (`docs/screenshots/`).
 - Lock screen clock uses 12-hour time with a small AM/PM. Set `use24h: true`
   near the top of `config/lockscreen/aether.lock/LockView.qml` for 24-hour.
 
