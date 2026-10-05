@@ -1,0 +1,130 @@
+"$schema" = 'https://starship.rs/config-schema.json'
+
+# AETHER prompt — two compact lines:
+#   ┌─ ~/Projects/reelio  󰘬 main ✓   v22.3  4s
+#   └─❯
+# Used through STARSHIP_CONFIG (set in aether-pre.bash); ~/.config/starship.toml
+# is left untouched.
+
+add_newline = true
+command_timeout = 400
+
+format = """
+[┌─](#263544) $directory$git_branch$git_status$git_state\
+$nodejs$python$rust$golang$bun$deno$java$php$ruby$docker_context$nix_shell\
+$cmd_duration$jobs
+[└─](#263544)$character"""
+
+palette = "aether"
+
+[palettes.aether]
+cyan = "#55D6FF"
+cyan_bright = "#8BE7FF"
+violet = "#9B8CFF"
+text = "#E8F0F7"
+secondary = "#8A9AAA"
+muted = "#566574"
+green = "#58E6A5"
+yellow = "#FFD166"
+red = "#FF667D"
+
+[character]
+success_symbol = "[❯](bold cyan)"
+error_symbol = "[❯](bold red)"
+vimcmd_symbol = "[❮](bold violet)"
+
+[directory]
+style = "bold cyan_bright"
+read_only = " 󰌾"
+read_only_style = "muted"
+truncation_length = 4
+truncation_symbol = "…/"
+format = "[$path]($style)[$read_only]($read_only_style) "
+
+[git_branch]
+symbol = "󰘬 "
+style = "violet"
+format = "[$symbol$branch(:$remote_branch)]($style) "
+
+[git_status]
+style = "yellow"
+format = "([$all_status$ahead_behind]($style) )"
+conflicted = "≠"
+ahead = "⇡${count}"
+behind = "⇣${count}"
+diverged = "⇕"
+untracked = "?"
+stashed = "≡"
+modified = "!"
+staged = "+"
+renamed = "»"
+deleted = "✘"
+up_to_date = "[✓](green)"
+
+[git_state]
+style = "yellow"
+format = "[\\($state( $progress_current/$progress_total)\\)]($style) "
+
+[cmd_duration]
+min_time = 2000
+style = "muted"
+format = "[ $duration]($style) "
+
+[jobs]
+symbol = "✦"
+style = "violet"
+
+[nodejs]
+symbol = " "
+style = "secondary"
+format = "[$symbol($version)]($style) "
+
+[python]
+symbol = " "
+style = "secondary"
+format = "[$symbol$pyenv_prefix($version)( \\($virtualenv\\))]($style) "
+
+[rust]
+symbol = " "
+style = "secondary"
+format = "[$symbol($version)]($style) "
+
+[golang]
+symbol = " "
+style = "secondary"
+format = "[$symbol($version)]($style) "
+
+[bun]
+symbol = " "
+style = "secondary"
+format = "[$symbol($version)]($style) "
+
+[deno]
+symbol = " "
+style = "secondary"
+format = "[$symbol($version)]($style) "
+
+[java]
+symbol = " "
+style = "secondary"
+format = "[$symbol($version)]($style) "
+
+[php]
+symbol = " "
+style = "secondary"
+format = "[$symbol($version)]($style) "
+
+[ruby]
+symbol = " "
+style = "secondary"
+format = "[$symbol($version)]($style) "
+
+[docker_context]
+symbol = " "
+style = "secondary"
+format = "[$symbol$context]($style) "
+
+[nix_shell]
+symbol = " "
+style = "secondary"
+format = "[$symbol$state]($style) "

@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "id": "aether.lock",
+  "name": "AETHER Lock Screen",
+  "version": "1.0.0",
+  "author": "AETHER",
+  "description": "Cinematic lock screen: thin clock, glass authentication panel. Authentication (PAM) is unchanged from Omarchy.",
+  "omarchy": {
+    "capabilities": [
+      "authentication"
+    ],
+    "clonedFrom": "omarchy.lock"
+  },
+  "kinds": [
+    "service"
+  ],
+  "keepLoaded": true,
+  "entryPoints": {
+    "service": "Service.qml"
+  }
+}

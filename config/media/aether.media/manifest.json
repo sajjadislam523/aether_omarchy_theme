@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "id": "aether.media",
+  "name": "AETHER Media",
+  "version": "1.0.0",
+  "author": "AETHER",
+  "description": "MPRIS media controller: compact now-playing, hover controls, glass popup with progress",
+  "kinds": [
+    "service",
+    "bar-widget"
+  ],
+  "keepLoaded": true,
+  "entryPoints": {
+    "service": "Service.qml",
+    "barWidget": "BarWidget.qml"
+  },
+  "barWidget": {
+    "displayName": "AETHER Media",
+    "description": "MPRIS now-playing with controls",
+    "category": "Media",
+    "allowMultiple": false
+  },
+  "omarchy": {
+    "clonedFrom": "omarchy.media"
+  }
+}

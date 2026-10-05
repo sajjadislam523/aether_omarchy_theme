@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "id": "aether.bar",
+  "name": "AETHER Bar",
+  "version": "1.0.0",
+  "author": "AETHER",
+  "description": "Floating glass bar with rounded corners and a hairline border",
+  "kinds": [
+    "bar"
+  ],
+  "entryPoints": {
+    "bar": "Bar.qml"
+  },
+  "omarchy": {
+    "clonedFrom": "omarchy.bar"
+  }
+}

@@ -1,0 +1,14 @@
+# Machine-specific snapshots of your own config — never commit.
+backup/
+
+# Rendered by scripts/generate-wallpapers.py (install.sh runs it).
+theme/backgrounds/*.png
+theme/lockscreen.png
+theme/preview.png
+
+# Local state, logs, caches.
+*.log
+*.tmp
+__pycache__/
+.cache/
+.DS_Store

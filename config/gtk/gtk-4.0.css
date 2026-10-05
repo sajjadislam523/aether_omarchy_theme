@@ -1,0 +1,98 @@
+/* AETHER — GTK 4 / libadwaita (1.6+ CSS variables).
+ * Linked to ~/.config/gtk-4.0/gtk.css by the AETHER theme hook while the
+ * AETHER theme is active, removed again when another theme is set.
+ * Only colors and a few radii change; layout stays stock Adwaita. */
+
+:root {
+  --accent-color: #8BE7FF;
+  --accent-bg-color: #1F7A9C;
+  --accent-fg-color: #F4F9FC;
+
+  --destructive-color: #FF8A9B;
+  --destructive-bg-color: #B83A52;
+  --destructive-fg-color: #F4F9FC;
+  --success-color: #58E6A5;
+  --success-bg-color: #23855F;
+  --success-fg-color: #F4F9FC;
+  --warning-color: #FFD166;
+  --warning-bg-color: #9C7417;
+  --warning-fg-color: #F4F9FC;
+  --error-color: #FF8A9B;
+  --error-bg-color: #B83A52;
+  --error-fg-color: #F4F9FC;
+
+  --window-bg-color: #0B1017;
+  --window-fg-color: #E8F0F7;
+  --view-bg-color: #070A0F;
+  --view-fg-color: #E8F0F7;
+  --headerbar-bg-color: #0B1017;
+  --headerbar-fg-color: #E8F0F7;
+  --headerbar-border-color: #263544;
+  --headerbar-backdrop-color: #070A0F;
+  --headerbar-shade-color: rgba(0, 0, 0, 0.36);
+  --headerbar-darker-shade-color: rgba(0, 0, 0, 0.6);
+  --sidebar-bg-color: #0B1017;
+  --sidebar-fg-color: #C5D2DD;
+  --sidebar-backdrop-color: #070A0F;
+  --sidebar-border-color: #1A2430;
+  --sidebar-shade-color: rgba(0, 0, 0, 0.3);
+  --secondary-sidebar-bg-color: #0B1017;
+  --secondary-sidebar-fg-color: #C5D2DD;
+  --secondary-sidebar-backdrop-color: #070A0F;
+  --secondary-sidebar-border-color: #1A2430;
+  --card-bg-color: rgba(255, 255, 255, 0.035);
+  --card-fg-color: #E8F0F7;
+  --card-shade-color: rgba(0, 0, 0, 0.36);
+  --dialog-bg-color: #101720;
+  --dialog-fg-color: #E8F0F7;
+  --popover-bg-color: #101720;
+  --popover-fg-color: #E8F0F7;
+  --popover-shade-color: rgba(0, 0, 0, 0.36);
+  --thumbnail-bg-color: #151E29;
+  --thumbnail-fg-color: #E8F0F7;
+  --shade-color: rgba(0, 0, 0, 0.36);
+  --scrollbar-outline-color: rgba(0, 0, 0, 0.5);
+  --border-color: rgba(139, 231, 255, 0.10);
+}
+
+/* Legacy named colors, for apps still reading @define-color. */
+@define-color accent_color #8BE7FF;
+@define-color accent_bg_color #1F7A9C;
+@define-color accent_fg_color #F4F9FC;
+@define-color window_bg_color #0B1017;
+@define-color window_fg_color #E8F0F7;
+@define-color view_bg_color #070A0F;
+@define-color view_fg_color #E8F0F7;
+@define-color headerbar_bg_color #0B1017;
+@define-color headerbar_fg_color #E8F0F7;
+@define-color popover_bg_color #101720;
+@define-color popover_fg_color #E8F0F7;
+@define-color dialog_bg_color #101720;
+@define-color dialog_fg_color #E8F0F7;
+@define-color card_bg_color rgba(255, 255, 255, 0.035);
+@define-color card_fg_color #E8F0F7;
+@define-color sidebar_bg_color #0B1017;
+@define-color sidebar_fg_color #C5D2DD;
+
+/* Hairline borders and softer selection instead of solid accent blocks. */
+popover > contents,
+popover.menu > contents {
+  border: 1px solid #263544;
+  border-radius: 14px;
+}
+
+row:selected,
+.navigation-sidebar > row:selected {
+  background-color: rgba(85, 214, 255, 0.12);
+  color: #E8F0F7;
+}
+
+row:selected:hover,
+.navigation-sidebar > row:selected:hover {
+  background-color: rgba(85, 214, 255, 0.16);
+}
+
+/* Violet, sparingly: focus rings and checked switches. */
+:focus-visible {
+  outline-color: rgba(155, 140, 255, 0.55);
+}

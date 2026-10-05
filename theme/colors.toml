@@ -1,0 +1,40 @@
+# AETHER — obsidian glass, electric cyan, a little violet.
+# Omarchy generates terminal, Hyprland, btop, browser, editor and GNOME
+# colors from this file. ghostty.conf and shell.toml in this folder are
+# hand-tuned and replace their generated versions.
+mode = "dark"
+
+accent = "#55D6FF"
+selection = "#1C3542"
+muted = "#566574"
+
+background = "#070A0F"
+dark_background = "#05070B"
+darker_background = "#030508"
+lighter_background = "#151E29"
+
+foreground = "#E8F0F7"
+dark_foreground = "#8A9AAA"
+light_foreground = "#C5D2DD"
+bright_foreground = "#F4F9FC"
+
+red = "#FF667D"
+yellow = "#FFD166"
+orange = "#FF9F6B"
+green = "#58E6A5"
+cyan = "#55D6FF"
+blue = "#6AA8F0"
+magenta = "#9B8CFF"
+brown = "#8A6A4A"
+
+bright_red = "#FF8A9B"
+bright_yellow = "#FFDD8A"
+bright_green = "#86EDBE"
+bright_cyan = "#8BE7FF"
+bright_blue = "#8FC0FF"
+bright_magenta = "#B8ADFF"
+
+# Active window: cyan fading into violet, kept translucent so it reads as
+# a highlight rather than a neon outline.
+hyprland_active_border = "rgba(55d6ffcc) rgba(9b8cff80) 45deg"
+hyprland_inactive_border = "rgba(263544aa)"

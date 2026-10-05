@@ -1,0 +1,40 @@
+/* AETHER — GTK 3 (on top of Adwaita-dark).
+ * Linked to ~/.config/gtk-3.0/gtk.css by the AETHER theme hook while the
+ * AETHER theme is active, removed again when another theme is set. */
+
+@define-color theme_bg_color #0B1017;
+@define-color theme_fg_color #E8F0F7;
+@define-color theme_base_color #070A0F;
+@define-color theme_text_color #E8F0F7;
+@define-color theme_selected_bg_color #1F7A9C;
+@define-color theme_selected_fg_color #F4F9FC;
+@define-color insensitive_bg_color #0B1017;
+@define-color insensitive_fg_color #566574;
+@define-color insensitive_base_color #070A0F;
+@define-color theme_unfocused_bg_color #0B1017;
+@define-color theme_unfocused_fg_color #8A9AAA;
+@define-color theme_unfocused_base_color #070A0F;
+@define-color theme_unfocused_text_color #C5D2DD;
+@define-color theme_unfocused_selected_bg_color #1C3542;
+@define-color theme_unfocused_selected_fg_color #E8F0F7;
+@define-color borders #263544;
+@define-color unfocused_borders #1A2430;
+@define-color warning_color #FFD166;
+@define-color error_color #FF667D;
+@define-color success_color #58E6A5;
+
+/* libadwaita-style names some GTK3 apps (and libhandy) read. */
+@define-color accent_color #8BE7FF;
+@define-color accent_bg_color #1F7A9C;
+@define-color window_bg_color #0B1017;
+@define-color view_bg_color #070A0F;
+@define-color headerbar_bg_color #0B1017;
+@define-color popover_bg_color #101720;
+@define-color card_bg_color rgba(255, 255, 255, 0.035);
+
+menu,
+.menu,
+.context-menu,
+popover {
+  border: 1px solid #263544;
+}

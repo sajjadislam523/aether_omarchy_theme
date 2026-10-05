@@ -1,0 +1,142 @@
+# AETHER — Omarchy shell surfaces (bar, popups, notifications, menus, lock).
+# Replaces the file Omarchy would generate from colors.toml. Sections in
+# ~/.config/omarchy/shell.toml still override these per section.
+#
+#   base      #070A0F    deep      #0B1017    floating  #101720
+#   elevated  #151E29    border    #263544
+#   text      #E8F0F7    secondary #8A9AAA    muted     #566574
+#   cyan      #55D6FF    bright    #8BE7FF    violet    #9B8CFF
+
+[bar]
+background       = "#0B1017"
+background-alpha = 0.78
+text             = "#E8F0F7"
+active           = "#FFD166"
+scale-with-font  = true
+size-horizontal  = 26
+size-vertical    = 28
+
+[hyprland]
+active-border            = "rgba(55d6ffcc) rgba(9b8cff80) 45deg"
+active-border-foreground = "#263544"
+
+[controls]
+normal-color        = "#E8F0F7"
+normal-fill-alpha   = 0.03
+normal-border       = "#263544"
+normal-border-width = 1
+normal-border-alpha = 1.0
+
+hover-cursor-color        = "#8BE7FF"
+hover-cursor-fill-alpha   = 0.06
+hover-cursor-border       = "#55D6FF"
+hover-cursor-border-width = 1
+hover-cursor-border-alpha = 0.35
+
+focus-color        = "#8BE7FF"
+focus-fill-alpha   = 0.06
+focus-border       = "#55D6FF"
+focus-border-width = 1
+focus-border-alpha = 0.55
+
+selected-color        = "#55D6FF"
+selected-fill-alpha   = 0.12
+selected-border       = "#55D6FF"
+selected-border-width = 1
+selected-border-alpha = 0.35
+
+pressed-fill-alpha   = 0.18
+selection-fill-alpha = 0.30
+
+[spacing]
+scale = 1.0
+scale-with-font = true
+
+[font]
+base-size = 12
+
+[popups]
+background       = "#101720"
+background-alpha = 0.94
+text             = "#E8F0F7"
+border           = "#263544"
+border-alpha     = 1.0
+border-width     = 1
+
+[tooltip]
+background       = "#151E29"
+background-alpha = 0.97
+text             = "#E8F0F7"
+border           = "#263544"
+border-alpha     = 1.0
+
+[notifications]
+background       = "#101720"
+background-alpha = 0.90
+text             = "#E8F0F7"
+border           = "#263544"
+border-alpha     = 1.0
+border-width     = 1
+countdown        = "#55D6FF"
+
+[launcher]
+background                = "#0B1017"
+background-alpha          = 0.94
+text                      = "#E8F0F7"
+border                    = "#263544"
+border-alpha              = 1.0
+scrim                     = "#030508"
+scrim-alpha               = 0.55
+selected-background       = "#55D6FF"
+selected-background-alpha = 0.10
+selected-text             = "#8BE7FF"
+selected-border           = "#55D6FF"
+selected-border-alpha     = 0.30
+
+[menu]
+background                = "#0B1017"
+background-alpha          = 0.96
+text                      = "#E8F0F7"
+border                    = "#263544"
+border-alpha              = 1.0
+scrim                     = "#030508"
+scrim-alpha               = 0.55
+selected-background       = "#55D6FF"
+selected-background-alpha = 0.10
+selected-text             = "#8BE7FF"
+selected-border           = "#55D6FF"
+selected-border-alpha     = 0.30
+
+[polkit]
+background       = "#101720"
+background-alpha = 0.98
+text             = "#E8F0F7"
+text-error       = "#FF667D"
+border           = "#263544"
+border-error     = "#FF667D"
+border-alpha     = 1.0
+scrim            = "#030508"
+scrim-alpha      = 0.6
+accent           = "#55D6FF"
+
+[lock]
+background       = "#101720"
+background-alpha = 0.55
+text             = "#E8F0F7"
+placeholder      = "#566574"
+text-error       = "#FF667D"
+border           = "#263544"
+border-active    = "#55D6FF"
+border-error     = "#FF667D"
+border-alpha     = 1.0
+selection        = "#55D6FF"
+selection-alpha  = 0.35
+
+[image-picker]
+scrim                   = "#030508"
+scrim-alpha             = 0.6
+text                    = "#E8F0F7"
+selected-border         = "#55D6FF"
+selected-border-alpha   = 1.0
+unselected-border       = "#E8F0F7"
+unselected-border-alpha = 0.2

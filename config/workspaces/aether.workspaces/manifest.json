@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "id": "aether.workspaces",
+  "name": "AETHER Workspaces",
+  "version": "1.0.0",
+  "author": "AETHER",
+  "description": "Minimal workspace indicator: cyan pill for the active workspace, dots or numbers for the rest",
+  "kinds": [
+    "bar-widget"
+  ],
+  "entryPoints": {
+    "barWidget": "Workspaces.qml"
+  },
+  "barWidget": {
+    "displayName": "AETHER Workspaces",
+    "description": "Minimal workspace indicator",
+    "category": "Compositor",
+    "allowMultiple": false,
+    "defaultSection": "left"
+  },
+  "omarchy": {
+    "clonedFrom": "omarchy.workspaces"
+  }
+}

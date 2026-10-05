@@ -1,0 +1,64 @@
+#!/bin/bash
+# AETHER theme-set hook (installed into ~/.config/omarchy/hooks/theme-set.d/).
+# Omarchy runs it after every theme change with the theme slug in $1.
+#
+#   theme == aether  -> link AETHER GTK CSS, switch to the AETHER cursor
+#   anything else    -> remove only what this hook linked, restore the cursor
+#
+# It never replaces a gtk.css it did not create.
+
+THEME="$1"
+AETHER_DIR="__AETHER_DIR__"
+STATE_DIR="$HOME/.local/state/aether"
+CURSOR_THEME="capitaine-cursors-light"
+CURSOR_SIZE=24
+
+mkdir -p "$STATE_DIR"
+
+link_css() {
+  local src="$1" dest="$2"
+  mkdir -p "$(dirname "$dest")"
+  if [[ -L $dest && $(readlink "$dest") == "$src" ]]; then
+    return
+  elif [[ -e $dest || -L $dest ]]; then
+    echo "aether: leaving existing $dest in place" >&2
+    return
+  fi
+  ln -s "$src" "$dest"
+}
+
+unlink_css() {
+  local src="$1" dest="$2"
+  if [[ -L $dest && $(readlink "$dest") == "$src" ]]; then
+    rm -f "$dest"
+  fi
+}
+
+set_cursor() {
+  local theme="$1" size="$2"
+  gsettings set org.gnome.desktop.interface cursor-theme "$theme" 2>/dev/null
+  gsettings set org.gnome.desktop.interface cursor-size "$size" 2>/dev/null
+  hyprctl setcursor "$theme" "$size" >/dev/null 2>&1
+}
+
+if [[ $THEME == aether ]]; then
+  link_css "$AETHER_DIR/config/gtk/gtk-4.0.css" "$HOME/.config/gtk-4.0/gtk.css"
+  link_css "$AETHER_DIR/config/gtk/gtk-3.0.css" "$HOME/.config/gtk-3.0/gtk.css"
+
+  if [[ -d /usr/share/icons/$CURSOR_THEME || -d $HOME/.local/share/icons/$CURSOR_THEME ]]; then
+    current=$(gsettings get org.gnome.desktop.interface cursor-theme 2>/dev/null | tr -d "'")
+    if [[ $current != "$CURSOR_THEME" ]]; then
+      echo "$current" >"$STATE_DIR/previous-cursor"
+    fi
+    set_cursor "$CURSOR_THEME" "$CURSOR_SIZE"
+  fi
+else
+  unlink_css "$AETHER_DIR/config/gtk/gtk-4.0.css" "$HOME/.config/gtk-4.0/gtk.css"
+  unlink_css "$AETHER_DIR/config/gtk/gtk-3.0.css" "$HOME/.config/gtk-3.0/gtk.css"
+
+  current=$(gsettings get org.gnome.desktop.interface cursor-theme 2>/dev/null | tr -d "'")
+  if [[ $current == "$CURSOR_THEME" ]]; then
+    previous=$(cat "$STATE_DIR/previous-cursor" 2>/dev/null)
+    set_cursor "${previous:-default}" "$CURSOR_SIZE"
+  fi
+fi
