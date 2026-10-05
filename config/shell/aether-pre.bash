@@ -2,7 +2,8 @@
 # Sets the prompt config and loads ble.sh without attaching yet (ble.sh must
 # be loaded early and attached last; see aether-post.bash).
 
-AETHER_DIR="${AETHER_DIR:-$HOME/aether}"
+# The repo can live anywhere: resolve it from this file's location.
+AETHER_DIR="${AETHER_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
 
 # Compact AETHER prompt; ~/.config/starship.toml stays as it was.
 if [[ -f $AETHER_DIR/config/shell/starship.toml ]]; then

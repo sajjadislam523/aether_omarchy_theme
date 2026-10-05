@@ -3,7 +3,7 @@
 ## 1. Get the repo
 
 ```bash
-git clone <url> ~/aether        # any location works; paths are resolved at install time
+git clone https://github.com/sajjadislam523/aether_omarchy_theme.git ~/aether   # any location works; keep it after installing
 cd ~/aether
 ```
 

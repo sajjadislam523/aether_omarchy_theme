@@ -5,7 +5,7 @@ AETHER is built entirely from Omarchy's supported extension points, so an
 modified.
 
 ```
-~/aether/                                    (this repo)
+aether_omarchy_theme/  (cloned to e.g. ~/aether)
 ├── theme/  ──symlink──▶ ~/.config/omarchy/themes/aether
 │   ├── colors.toml        palette → Omarchy generates btop, browser, editors, alacritty/kitty/foot…
 │   ├── shell.toml         omarchy-shell surfaces: bar, popups, notifications, menus, polkit, lock
@@ -44,10 +44,18 @@ and disables the original. Switching back is `omarchy plugin enable omarchy.<x>`
   edges (layer-shell margins), a rounded surface, hairline border and top
   sheen. Radius follows `decoration:rounding`.
 - `aether.workspaces` — event-driven via `Quickshell.Hyprland`.
-- `aether.media` — Omarchy's media `Service.qml` (player selection, OSD,
-  IPC) unchanged, plus a new `BarWidget.qml`.
+- `aether.media` — a new `BarWidget.qml` that reads MPRIS directly via
+  `Quickshell.Services.Mpris`, plus Omarchy's media `Service.qml` unchanged
+  (media keys, OSD, `media` IPC). The widget cannot use that service: a
+  replacement bar gives third-party widgets a service-less API (see below).
 - `aether.lock` — Omarchy's lock `Service.qml` (PAM, fingerprint,
   `WlSessionLock`) unchanged, plus a new `LockView.qml`.
+
+**Replacement-bar trust model.** Omarchy treats any bar other than its own
+as untrusted. First-party widgets inside it still get proxies for the idle,
+night-light, notification and media services, but third-party widgets get
+an API without services. AETHER's own widgets therefore talk to Hyprland,
+MPRIS and UPower directly.
 
 **Theme hook.** Omarchy runs `~/.config/omarchy/hooks/theme-set.d/*` after
 every theme change. AETHER's hook links the GTK CSS and sets the cursor only

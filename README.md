@@ -2,6 +2,8 @@
 
 **Obsidian glass · electric cyan · a little violet · floating surfaces.**
 
+A desktop theme for Omarchy — [sajjadislam523/aether_omarchy_theme](https://github.com/sajjadislam523/aether_omarchy_theme)
+
 AETHER is a complete dark desktop theme for [Omarchy](https://omarchy.org)
 (Arch Linux + Hyprland + omarchy-shell). It aims for something calm, precise
 and cinematic rather than neon: near-black surfaces, a single cyan accent,
@@ -59,10 +61,14 @@ controls, ~180ms for panels, and slow (7–9s) only for the lock-screen glow.
 ## Install
 
 ```bash
-git clone <this repo> ~/aether
+git clone https://github.com/sajjadislam523/aether_omarchy_theme.git ~/aether
 cd ~/aether
 ./install.sh
 ```
+
+The repo can live anywhere; `~/aether` is only a suggestion. Paths are
+resolved at install time, and the files under `~/.config` point back into the
+clone, so keep it after installing.
 
 Options: `--no-packages`, `--no-shell`, `--no-lock`, `--no-bar`. The installer
 backs up first, symlinks repo files into place, never overwrites a file it
@@ -104,13 +110,19 @@ your previous theme, wallpaper and GNOME interface settings.
 
 ## Media (MPRIS)
 
-The widget follows whichever MPRIS player Omarchy's media service considers
-active (playing players first), so Spotify, Firefox/Chromium tabs, VLC and mpv
-all work. Bar: left-click opens the panel, right-click play/pause, middle-click
+The widget reads MPRIS directly, so Spotify, Firefox/Chromium tabs, VLC and
+mpv all work. Which player it follows: the one you picked in the panel, else
+whatever is playing (Spotify first), else the one that played last, else
+Spotify, else any player with a track. Bar: left-click opens the panel, right-click play/pause, middle-click
 next, scroll prev/next; hovering reveals ◀ ❚❚ ▶. With several players the panel
 lists them so you can pick one. With no player it shows a dim note and offers
 "Open Spotify". Playback position is polled once a second only while the panel
 is open and something is playing; everything else is event-driven.
+
+Why not Omarchy's media service? A replacement bar (which `aether.bar` is)
+hands third-party widgets a restricted API without access to built-in
+services. The cloned media service is still loaded, so media keys, the OSD and
+`omarchy-shell media …` IPC behave exactly as before.
 
 ## Lock screen
 
@@ -127,6 +139,14 @@ other themes fall back to their (blurred) desktop wallpaper.
 picker preview. Procedural, no downloaded artwork. Add more desktop images to
 `theme/backgrounds/` and cycle with `omarchy theme bg next`.
 
+## Updating
+
+```bash
+cd ~/aether && git pull
+omarchy theme set aether      # theme/ is copied when applied
+omarchy restart shell         # shell plugins are read at shell start
+```
+
 ## Troubleshooting
 
 See [docs/troubleshooting.md](docs/troubleshooting.md). Quick checks:
@@ -139,6 +159,15 @@ See [docs/compatibility.md](docs/compatibility.md). In short: Omarchy-only;
 the bar has no drop shadow (Hyprland does not shadow layer surfaces); Qt
 popups cannot be blurred; the shell UI font stays the monospace system font;
 the icon theme stays Yaru-blue (no outline icon theme in the official repos).
+
+## Contributing
+
+Issues and pull requests are welcome at
+[sajjadislam523/aether_omarchy_theme](https://github.com/sajjadislam523/aether_omarchy_theme). Please test changes with
+`./uninstall.sh && ./install.sh`, check `hyprctl configerrors` and the shell
+log, and preview lock-screen changes with `omarchy-shell lock preview` before
+locking for real. Do not commit screenshots of your desktop, the `backup/`
+folder, or rendered wallpapers.
 
 ## License
 
