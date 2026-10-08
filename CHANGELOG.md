@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Fix the first prompt line ("┌─ ~") appearing twice in new Ghostty windows.
+  Ghostty's prompt hook did a fresh-line after ble.sh had already drawn the
+  first prompt. Under ble.sh it now uses Ghostty's no-fresh-line marker.
 - README screenshots: desktop, terminal, lock screen, media panel,
   notification (`docs/screenshots/`).
 - Lock screen clock uses 12-hour time with a small AM/PM. Set `use24h: true`

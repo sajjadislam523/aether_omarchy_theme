@@ -84,6 +84,15 @@ Remote: https://github.com/sajjadislam523/aether_omarchy_theme (public).
   calling shell's own command line and kills it.
 - Typing into a demo terminal: `wtype`, only after checking
   `hyprctl activewindow` is the demo window. Keystrokes go to whatever is focused.
+- **Ghostty + ble.sh double prompt:** Ghostty's bash hook prints OSC `133;A`
+  (fresh-line + prompt start) from PROMPT_COMMAND. On the *first* prompt
+  ble.sh has already drawn the two-line prompt by then, so the fresh-line
+  moved the cursor and the next redraw duplicated `┌─ ~`.
+  `aether-post.bash` patches `__ghostty_precmd` to emit `133;P;k=i` instead.
+  Ghostty defines that function only *after* `~/.bashrc`, hence the patch
+  runs from a PROMPT_COMMAND entry queued ahead of `__ghostty_hook`. To
+  reproduce Ghostty's startup in a recordable pty:
+  `env TERM=xterm-ghostty GHOSTTY_BASH_INJECT=1 ENV=/usr/share/ghostty/shell-integration/bash/ghostty.bash script -q -c "bash --posix" log`.
 - Omarchy also ships an unrelated pacman package/app called `aether` (a
   wallpaper-to-theme generator). Different thing, same name.
 

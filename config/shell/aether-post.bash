@@ -34,5 +34,27 @@ if [[ ${BLE_VERSION-} ]]; then
     ble-import -d integration/fzf-key-bindings 2>/dev/null
   fi
 
+  # Ghostty: its prompt hook prints "start of prompt" (OSC 133;A), which also
+  # does a fresh line. On the first prompt that hook runs after ble.sh has
+  # already drawn the two-line prompt, so the cursor moves down a line, and
+  # ble.sh's next redraw (e.g. when Hyprland tiles the new window) starts one
+  # line too low: "┌─ ~" showed up twice. ble.sh already starts every prompt
+  # on a fresh line, so use the no-fresh-line marker (133;P) Ghostty itself
+  # uses inside PS1. Ghostty defines its hook after ~/.bashrc, so patch it
+  # from a PROMPT_COMMAND entry that runs ahead of Ghostty's own.
+  if [[ ${__ghostty_bash_flags+set} || $TERM == xterm-ghostty ]]; then
+    _aether_ghostty_prompt_fix() {
+      [[ ${_aether_ghostty_fixed-} ]] && return
+      _aether_ghostty_fixed=1
+      declare -F __ghostty_precmd >/dev/null || return
+      eval "$(declare -f __ghostty_precmd | sed 's/133;A;/133;P;k=i;/')"
+    }
+    if [[ $(declare -p PROMPT_COMMAND 2>/dev/null) == "declare -a"* ]]; then
+      PROMPT_COMMAND+=(_aether_ghostty_prompt_fix)
+    else
+      PROMPT_COMMAND="${PROMPT_COMMAND:+$PROMPT_COMMAND; }_aether_ghostty_prompt_fix"
+    fi
+  fi
+
   ble-attach
 fi
