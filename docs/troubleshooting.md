@@ -55,9 +55,15 @@ Open a new terminal after installing.
 
 ## Cursor did not change everywhere
 
-Already-running apps keep their cursor until restarted. XWayland apps read
-`XCURSOR_THEME`, which Omarchy does not set; most apps follow the GNOME
-setting AETHER changes.
+Already-running apps keep their cursor until restarted. AETHER sets
+`XCURSOR_THEME` in `theme/hyprland.lua`, so Hyprland and XWayland apps start
+with the AETHER cursor at login; GTK apps follow the GNOME setting the hook
+changes.
+
+## Cursor back to default after a reboot
+
+`echo $XCURSOR_THEME` should print `capitaine-cursors-light`. If it is empty,
+re-apply the theme with `omarchy theme set aether` and log out and back in.
 
 ## GTK app still looks stock
 

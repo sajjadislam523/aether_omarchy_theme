@@ -1,7 +1,11 @@
 -- AETHER — Hyprland surfaces. Loaded only while the AETHER theme is active
 -- (before ~/.config/hypr/*, so personal settings there still win).
 
-local active_border_color = { colors = { "rgba(55d6ffcc)", "rgba(9b8cff80)" }, angle = 45 }
+-- Cursor at login. The theme-set hook only switches it live; without this,
+-- Hyprland starts on "default" and syncs that back into gsettings.
+hl.env("XCURSOR_THEME", "capitaine-cursors-light")
+
+local active_border_color ={ colors = { "rgba(55d6ffcc)", "rgba(9b8cff80)" }, angle = 45 }
 local inactive_border_color = "rgba(263544aa)"
 
 hl.config({

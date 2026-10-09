@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Keep the AETHER cursor after a reboot. The theme-set hook only switched it
+  for the running session, so Hyprland started on "default" at the next login
+  and synced that back into gsettings. `theme/hyprland.lua` now sets
+  `XCURSOR_THEME`.
 - Fix the first prompt line ("┌─ ~") appearing twice in new Ghostty windows.
   Ghostty's prompt hook did a fresh-line after ble.sh had already drawn the
   first prompt. Under ble.sh it now uses Ghostty's no-fresh-line marker.
