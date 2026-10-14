@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Media panel is now a central control panel: one card per open media source,
+  each with its own ◀ ❚❚ ▶ and seekable progress; "N sources · N playing"
+  summary, Pause all, and Open Spotify when it isn't running. The bar shows
+  only what is currently playing (+N badge when several play).
+- Popups are 98% opaque (was 94%) so text behind them doesn't show through.
 - Keep the AETHER cursor after a reboot. The theme-set hook only switched it
   for the running session, so Hyprland started on "default" at the next login
   and synced that back into gsettings. `theme/hyprland.lua` now sets

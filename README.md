@@ -14,7 +14,7 @@ violet used sparingly, hairline borders and soft depth.
 | Palette | One token set used everywhere | `theme/colors.toml`, `theme/shell.toml` |
 | Top bar | Floating, rounded glass bar with a hairline border and blur | `aether.bar` shell plugin + Hyprland layer rule |
 | Workspaces | Cyan pill for the active workspace, dots (or `01 02 03`) for the rest | `aether.workspaces` shell plugin |
-| Media | Any MPRIS player (Spotify, browsers, VLC, mpv…): compact now-playing, hover transport, glass panel with artwork and seekable progress | `aether.media` shell plugin |
+| Media | Central control panel for every MPRIS player (Spotify, browsers, VLC, mpv…): the bar shows only what is playing; the panel has a card with controls and progress per source | `aether.media` shell plugin |
 | Windows | 14px rounding, 1px cyan→violet active border, soft wide shadows | `theme/hyprland.lua` |
 | Lock screen | Thin clock, letter-spaced date, glass auth panel, dedicated darker wallpaper, slow atmospheric glow | `aether.lock` shell plugin (visual only — authentication is Omarchy's, unchanged) |
 | Notifications, menus, popups, polkit | Glass cards, 1px `#263544` border, cyan selection | `theme/shell.toml` |
@@ -125,14 +125,23 @@ your previous theme, wallpaper and GNOME interface settings.
 
 ## Media (MPRIS)
 
-The widget reads MPRIS directly, so Spotify, Firefox/Chromium tabs, VLC and
-mpv all work. Which player it follows: the one you picked in the panel, else
-whatever is playing (Spotify first), else the one that played last, else
-Spotify, else any player with a track. Bar: left-click opens the panel, right-click play/pause, middle-click
-next, scroll prev/next; hovering reveals ◀ ❚❚ ▶. With several players the panel
-lists them so you can pick one. With no player it shows a dim note and offers
-"Open Spotify". Playback position is polled once a second only while the panel
-is open and something is playing; everything else is event-driven.
+A central control panel for everything that plays media: Spotify, browser
+tabs (YouTube, Instagram…), VLC, mpv and any other MPRIS player.
+
+- **Bar:** shows only what is playing right now, as a note icon and the title.
+  A small `+1` badge appears when several things play at once. Hovering
+  reveals ◀ ❚❚ ▶. With nothing playing it is a dim note. Right-click
+  play/pauses (it resumes the last player when everything is paused),
+  middle-click skips, scroll goes previous/next.
+- **Panel (left-click):** one card per open source, each with artwork,
+  title, artist, app, its own ◀ ❚❚ ▶ and a seekable progress bar. Playing
+  cards are highlighted with a small equaliser. Cards stay in a fixed order,
+  so they don't jump when you pause one. The header shows "N sources · N
+  playing" and a **Pause all** button. **Open Spotify** appears while Spotify
+  isn't running.
+
+Playback positions are refreshed once a second only while the panel is open
+and something is playing; everything else is event-driven.
 
 Why not Omarchy's media service? A replacement bar (which `aether.bar` is)
 hands third-party widgets a restricted API without access to built-in

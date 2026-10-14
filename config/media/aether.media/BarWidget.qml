@@ -4,21 +4,27 @@ import Quickshell.Services.Mpris
 import qs.Ui
 import qs.Commons
 
-// AETHER media controller (any MPRIS player: Spotify, Firefox/Chromium, VLC, mpv…).
-//   bar:    note icon + track title; hover reveals ◀ ❚❚ ▶
-//   left = panel · right = play/pause · middle = next · scroll = prev/next
-//   panel:  artwork, title, artist, source, controls, seekable progress
-// With no player left it collapses to a dim note instead of disappearing.
+// AETHER media centre (any MPRIS player: Spotify, browsers, VLC, mpv…).
+//
+//   bar:   only what is playing right now: note + title (+N when several
+//          play at once); hover reveals ◀ ❚❚ ▶. Nothing playing: a dim note.
+//          left = panel · right = play/pause · middle = next · scroll = prev/next
+//   panel: one card per open player, each with artwork, title, artist,
+//          app, its own ◀ ❚❚ ▶ and a seekable progress bar; "Pause all";
+//          "Open Spotify" when Spotify is not running.
+//
+// Players are read straight from MPRIS: a replacement bar such as aether.bar
+// is not handed Omarchy's media service.
 BarWidget {
   id: root
   moduleName: "omarchy.media"
 
-  // Players come straight from MPRIS. (A replacement bar such as aether.bar
-  // is not handed Omarchy's media service, so the widget cannot rely on it.)
+  // ---------------------------------------------------------------- players
   readonly property var allPlayers: Mpris.players ? Mpris.players.values : []
-  readonly property var sourcePlayers: allPlayers.filter(usable)
-  property string pinnedKey: ""      // chosen in the panel
-  property string lastKey: ""        // most recently playing player
+  // Stable order (as MPRIS lists them), so cards do not jump when one pauses.
+  readonly property var players: allPlayers.filter(usable)
+  readonly property var playingPlayers: players.filter(function(p) { return p.isPlaying })
+  property string lastKey: ""   // most recently playing player, for resume
 
   function keyOf(p) { return p ? String(p.dbusName || p.identity || "") : "" }
   function usable(p) {
@@ -35,30 +41,11 @@ BarWidget {
     for (var i = 0; i < list.length; i++) if (keyOf(list[i]) === key) return list[i]
     return null
   }
-
-  // pinned → playing (Spotify first) → last playing → Spotify → anything.
-  readonly property var playingPlayer: preferred(sourcePlayers.filter(function(p) { return p.isPlaying }))
-  onPlayingPlayerChanged: if (playingPlayer) lastKey = keyOf(playingPlayer)
-  readonly property var player: (pinnedKey && byKey(sourcePlayers, pinnedKey))
-    || playingPlayer || (lastKey && byKey(sourcePlayers, lastKey)) || preferred(sourcePlayers)
-
-  readonly property bool hasMedia: player !== null && (player.trackTitle || player.trackArtist)
-  readonly property bool playing: player !== null && player.isPlaying
-  readonly property string title: player ? (player.trackTitle || "") : ""
-  readonly property string artist: player ? (player.trackArtist || "") : ""
-  readonly property string source: player ? (player.identity || player.desktopEntry || "") : ""
-  readonly property real maxLabelWidth: Number(setting("maxWidth", 160))
-
-  readonly property color fg: bar ? bar.barForeground : Color.foreground
-  readonly property color secondary: Qt.rgba(fg.r, fg.g, fg.b, 0.62)
-  readonly property color muted: Qt.rgba(fg.r, fg.g, fg.b, 0.38)
-  readonly property bool hovered: hover.hovered || controlsHover.hovered
-
-  property bool popupOpen: false
-  function close() { popupOpen = false }
-
-  function act(action) {
-    var p = player
+  function appName(p) {
+    var name = p ? String(p.identity || p.desktopEntry || "Player") : ""
+    return name.replace(/^Google /, "")
+  }
+  function act(p, action) {
     if (!p) return
     if (action === "previous" && p.canGoPrevious) p.previous()
     else if (action === "next" && p.canGoNext) p.next()
@@ -68,7 +55,10 @@ BarWidget {
       else if (p.canPlay) p.play()
     }
   }
-
+  function pauseAll() {
+    var list = playingPlayers.slice()
+    for (var i = 0; i < list.length; i++) if (list[i].canPause) list[i].pause()
+  }
   function formatTime(seconds) {
     if (!isFinite(seconds) || seconds < 0) return "0:00"
     var s = Math.floor(seconds)
@@ -77,6 +67,29 @@ BarWidget {
     var ss = String(s % 60).padStart(2, "0")
     return h > 0 ? h + ":" + String(m % 60).padStart(2, "0") + ":" + ss : m + ":" + ss
   }
+
+  // The bar follows what is playing (Spotify first if several are).
+  readonly property var nowPlaying: preferred(playingPlayers)
+  onNowPlayingChanged: if (nowPlaying) lastKey = keyOf(nowPlaying)
+  // Bar clicks with nothing playing act on the last player, so right-click resumes it.
+  readonly property var barTarget: nowPlaying || (lastKey && byKey(players, lastKey)) || preferred(players)
+  readonly property bool playing: nowPlaying !== null
+  readonly property string title: nowPlaying ? (nowPlaying.trackTitle || nowPlaying.trackArtist || "") : ""
+  readonly property bool spotifyOpen: allPlayers.some(isSpotify)
+  readonly property real maxLabelWidth: Number(setting("maxWidth", 160))
+
+  // ------------------------------------------------------------- appearance
+  readonly property color fg: bar ? bar.barForeground : Color.foreground
+  readonly property color secondary: Qt.rgba(fg.r, fg.g, fg.b, 0.62)
+  readonly property color muted: Qt.rgba(fg.r, fg.g, fg.b, 0.38)
+  readonly property color text: Color.popups.text
+  readonly property color text2: Qt.rgba(text.r, text.g, text.b, 0.62)
+  readonly property color text3: Qt.rgba(text.r, text.g, text.b, 0.40)
+  readonly property color accent: Color.accent
+  readonly property bool hovered: hover.hovered || controlsHover.hovered
+
+  property bool popupOpen: false
+  function close() { popupOpen = false }
 
   implicitWidth: root.vertical ? barSize : row.implicitWidth + Style.space(12)
   implicitHeight: barSize
@@ -88,42 +101,59 @@ BarWidget {
 
   HoverHandler { id: hover }
 
+  // -------------------------------------------------------------------- bar
   Row {
     id: row
     anchors.centerIn: parent
     spacing: Style.space(6)
 
     Text {
-      id: note
       anchors.verticalCenter: parent.verticalCenter
       textFormat: Text.PlainText
       text: "󰝚"
-      color: root.playing ? Color.accent : (root.hasMedia ? root.secondary : root.muted)
+      color: root.playing ? root.accent : root.muted
       font.family: root.bar ? root.bar.fontFamily : Style.font.family
       font.pixelSize: Style.font.icon
       Behavior on color { ColorAnimation { duration: 160 } }
     }
 
     Text {
-      id: label
       anchors.verticalCenter: parent.verticalCenter
-      visible: root.hasMedia && !root.vertical
+      visible: root.playing && !root.vertical
       width: Math.min(root.maxLabelWidth, implicitWidth)
       textFormat: Text.PlainText
-      text: root.title || root.artist
+      text: root.title
       elide: Text.ElideRight
-      color: root.playing ? root.fg : root.secondary
+      color: root.fg
       font.family: root.bar ? root.bar.fontFamily : Style.font.family
       font.pixelSize: Style.font.body
-      Behavior on color { ColorAnimation { duration: 160 } }
     }
 
-    // Inline transport, revealed on hover.
+    // "+1" when more than one thing is playing.
+    Rectangle {
+      anchors.verticalCenter: parent.verticalCenter
+      visible: root.playingPlayers.length > 1 && !root.vertical
+      width: countText.implicitWidth + Style.space(8)
+      height: countText.implicitHeight + Style.space(2)
+      radius: height / 2
+      color: Qt.rgba(root.accent.r, root.accent.g, root.accent.b, 0.14)
+      Text {
+        id: countText
+        anchors.centerIn: parent
+        textFormat: Text.PlainText
+        text: "+" + (root.playingPlayers.length - 1)
+        color: root.accent
+        font.family: root.bar ? root.bar.fontFamily : Style.font.family
+        font.pixelSize: Style.font.caption
+      }
+    }
+
+    // Inline transport for the playing media, revealed on hover.
     Row {
       id: controls
       anchors.verticalCenter: parent.verticalCenter
       visible: width > 0
-      width: root.hasMedia && root.hovered && !root.vertical ? implicitWidth : 0
+      width: root.playing && root.hovered && !root.vertical ? implicitWidth : 0
       clip: true
       spacing: Style.space(2)
       opacity: width > 0 ? 1 : 0
@@ -135,7 +165,7 @@ BarWidget {
       Repeater {
         model: [
           { glyph: "󰒮", action: "previous" },
-          { glyph: root.playing ? "󰏤" : "󰐊", action: "playPause" },
+          { glyph: "󰏤", action: "playPause" },
           { glyph: "󰒭", action: "next" }
         ]
 
@@ -147,7 +177,7 @@ BarWidget {
           text: modelData.glyph
           horizontalAlignment: Text.AlignHCenter
           verticalAlignment: Text.AlignVCenter
-          color: tap.containsMouse ? Color.accent : root.secondary
+          color: tap.containsMouse ? root.accent : root.secondary
           font.family: root.bar ? root.bar.fontFamily : Style.font.family
           font.pixelSize: Style.font.body
           Behavior on color { ColorAnimation { duration: 120 } }
@@ -157,14 +187,14 @@ BarWidget {
             anchors.fill: parent
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
-            onClicked: root.act(parent.modelData.action)
+            onClicked: root.act(root.nowPlaying, parent.modelData.action)
           }
         }
       }
     }
   }
 
-  // Covers the icon + title; the transport buttons sit above it.
+  // Icon + title area; the transport buttons sit above it.
   MouseArea {
     anchors.left: parent.left
     anchors.top: parent.top
@@ -176,311 +206,412 @@ BarWidget {
 
     onClicked: function(mouse) {
       if (mouse.button === Qt.LeftButton) root.popupOpen = !root.popupOpen
-      else if (mouse.button === Qt.RightButton) root.act("playPause")
-      else root.act("next")
+      else if (mouse.button === Qt.RightButton) root.act(root.barTarget, "playPause")
+      else root.act(root.barTarget, "next")
     }
     onWheel: function(wheel) {
-      if (wheel.angleDelta.y > 0) root.act("previous")
-      else if (wheel.angleDelta.y < 0) root.act("next")
+      if (wheel.angleDelta.y > 0) root.act(root.barTarget, "previous")
+      else if (wheel.angleDelta.y < 0) root.act(root.barTarget, "next")
     }
-    onEntered: if (root.bar) root.bar.showTooltip(root, root.hasMedia
-      ? (root.title + (root.artist ? " — " + root.artist : "") + (root.source ? "  ·  " + root.source : ""))
-      : "No media playing")
+    onEntered: {
+      if (!root.bar) return
+      var n = root.players.length
+      var tip = root.playing
+        ? root.title + (root.nowPlaying.trackArtist ? " — " + root.nowPlaying.trackArtist : "") + "  ·  " + root.appName(root.nowPlaying)
+        : (n ? n + (n === 1 ? " player, paused" : " players, all paused") : "No media")
+      root.bar.showTooltip(root, tip)
+    }
     onExited: if (root.bar) root.bar.hideTooltip(root)
   }
 
-  // MPRIS does not push position updates; poll once a second, but only while
+  // MPRIS does not push playback position; refresh once a second, only while
   // the panel is open and something is playing.
   Timer {
     interval: 1000
     repeat: true
     running: root.popupOpen && root.playing
-    onTriggered: if (root.player) root.player.positionChanged()
+    onTriggered: {
+      var list = root.playingPlayers
+      for (var i = 0; i < list.length; i++) list[i].positionChanged()
+    }
   }
 
+  // ------------------------------------------------------------------ panel
   PopupCard {
     id: popup
     anchorItem: root
     bar: root.bar
     owner: root
     open: root.popupOpen
-    contentWidth: popup.fittedContentWidth(Style.space(300))
-    contentHeight: popup.fittedContentHeight(column.implicitHeight)
+    contentWidth: popup.fittedContentWidth(Style.space(340))
+    contentHeight: popup.fittedContentHeight(panel.implicitHeight, Style.space(520))
 
     Column {
-      id: column
+      id: panel
       anchors.fill: parent
-      spacing: Style.space(12)
+      spacing: Style.space(10)
 
-      // Artwork + text.
-      Row {
+      // Header: summary + Pause all.
+      Item {
         width: parent.width
-        spacing: Style.space(12)
-
-        Rectangle {
-          id: art
-          width: Style.space(56)
-          height: Style.space(56)
-          radius: Style.space(10)
-          color: Qt.rgba(1, 1, 1, 0.04)
-          border.width: 1
-          border.color: Color.popups.border
-          clip: true
-
-          Image {
-            id: artImage
-            anchors.fill: parent
-            anchors.margins: 1
-            fillMode: Image.PreserveAspectCrop
-            asynchronous: true
-            source: root.player && root.player.trackArtUrl ? root.player.trackArtUrl : ""
-            visible: status === Image.Ready
-          }
-
-          Text {
-            anchors.centerIn: parent
-            visible: !artImage.visible
-            text: "󰝚"
-            color: root.hasMedia ? Color.accent : root.muted
-            font.family: root.bar ? root.bar.fontFamily : Style.font.family
-            font.pixelSize: Style.font.heading
-          }
-        }
+        height: Math.max(headerText.implicitHeight, pauseAll.implicitHeight)
 
         Column {
-          width: parent.width - art.width - Style.space(12)
+          id: headerText
+          anchors.left: parent.left
           anchors.verticalCenter: parent.verticalCenter
-          spacing: Style.space(3)
+          spacing: Style.space(1)
 
           Text {
-            width: parent.width
             textFormat: Text.PlainText
-            text: root.hasMedia ? root.title : "Nothing playing"
-            color: Color.popups.text
+            text: "Media"
+            color: root.text
             font.family: Style.font.family
             font.pixelSize: Style.font.subtitle
             font.bold: true
-            elide: Text.ElideRight
           }
           Text {
-            width: parent.width
-            visible: text !== ""
             textFormat: Text.PlainText
-            text: root.hasMedia ? root.artist : "Start a player to see it here"
-            color: Qt.rgba(Color.popups.text.r, Color.popups.text.g, Color.popups.text.b, 0.62)
-            font.family: Style.font.family
-            font.pixelSize: Style.font.bodySmall
-            elide: Text.ElideRight
-          }
-          Text {
-            width: parent.width
-            visible: text !== ""
-            textFormat: Text.PlainText
-            text: root.source
-            color: Color.accent
-            opacity: 0.8
+            text: {
+              var n = root.players.length, k = root.playingPlayers.length
+              if (!n) return "Nothing open"
+              return n + (n === 1 ? " source" : " sources") + "  ·  " + (k ? k + " playing" : "all paused")
+            }
+            color: root.text3
             font.family: Style.font.family
             font.pixelSize: Style.font.caption
-            elide: Text.ElideRight
           }
+        }
+
+        Button {
+          id: pauseAll
+          anchors.right: parent.right
+          anchors.verticalCenter: parent.verticalCenter
+          visible: root.playingPlayers.length > 0
+          text: root.playingPlayers.length > 1 ? "Pause all" : "Pause"
+          iconText: "󰏤"
+          foreground: root.text
+          horizontalPadding: Style.spacing.controlPaddingX
+          verticalPadding: Style.space(3)
+          fontSize: Style.font.bodySmall
+          iconSize: Style.font.bodySmall
+          onClicked: root.pauseAll()
         }
       }
 
-      // Progress (only when the player reports a length).
-      Column {
-        id: progress
+      // One card per player; scrolls past ~4 cards.
+      Flickable {
+        id: list
         width: parent.width
-        spacing: Style.space(4)
-        readonly property real length: root.player && root.player.lengthSupported ? root.player.length : 0
-        readonly property real position: root.player && root.player.positionSupported ? root.player.position : 0
-        visible: root.hasMedia && length > 0
+        height: Math.min(cards.implicitHeight, Style.space(400))
+        contentHeight: cards.implicitHeight
+        clip: true
+        interactive: contentHeight > height
+        boundsBehavior: Flickable.StopAtBounds
+        visible: root.players.length > 0
 
-        Item {
-          width: parent.width
-          height: Style.space(10)
+        Column {
+          id: cards
+          width: list.width
+          spacing: Style.space(8)
 
-          Rectangle {
-            id: track
-            anchors.verticalCenter: parent.verticalCenter
-            width: parent.width
-            height: 3
-            radius: 1.5
-            color: Qt.rgba(1, 1, 1, 0.08)
+          Repeater {
+            model: root.players
+            delegate: Rectangle {
+              id: card
+              required property var modelData
+              readonly property var p: modelData
+              readonly property bool isPlaying: p !== null && p.isPlaying
+              readonly property real length: p && p.lengthSupported ? p.length : 0
+              readonly property real position: p && p.positionSupported ? p.position : 0
 
-            Rectangle {
-              width: progress.length > 0 ? Math.min(1, progress.position / progress.length) * parent.width : 0
-              height: parent.height
-              radius: parent.radius
-              gradient: Gradient {
-                orientation: Gradient.Horizontal
-                GradientStop { position: 0.0; color: Color.accent }
-                GradientStop { position: 1.0; color: Qt.lighter(Color.accent, 1.2) }
+              width: cards.width
+              height: cardBody.implicitHeight + Style.space(20)
+              radius: Style.space(12)
+              color: isPlaying ? Qt.rgba(root.accent.r, root.accent.g, root.accent.b, 0.07)
+                : (cardHover.hovered ? Qt.rgba(1, 1, 1, 0.035) : Qt.rgba(1, 1, 1, 0.02))
+              border.width: 1
+              border.color: isPlaying ? Qt.rgba(root.accent.r, root.accent.g, root.accent.b, 0.35) : Color.popups.border
+              Behavior on color { ColorAnimation { duration: 160 } }
+              Behavior on border.color { ColorAnimation { duration: 160 } }
+
+              HoverHandler { id: cardHover }
+
+              Column {
+                id: cardBody
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.top: parent.top
+                anchors.margins: Style.space(10)
+                spacing: Style.space(8)
+
+                Row {
+                  width: parent.width
+                  spacing: Style.space(10)
+
+                  // Artwork (or a note), with a small "playing" equaliser.
+                  Rectangle {
+                    id: art
+                    width: Style.space(44)
+                    height: Style.space(44)
+                    radius: Style.space(8)
+                    color: Qt.rgba(1, 1, 1, 0.04)
+                    border.width: 1
+                    border.color: Color.popups.border
+                    clip: true
+
+                    Image {
+                      id: artImage
+                      anchors.fill: parent
+                      anchors.margins: 1
+                      fillMode: Image.PreserveAspectCrop
+                      asynchronous: true
+                      sourceSize.width: 96
+                      sourceSize.height: 96
+                      source: card.p && card.p.trackArtUrl ? card.p.trackArtUrl : ""
+                      visible: status === Image.Ready
+                    }
+                    Text {
+                      anchors.centerIn: parent
+                      visible: !artImage.visible
+                      textFormat: Text.PlainText
+                      text: root.isSpotify(card.p) ? "" : "󰝚"
+                      color: card.isPlaying ? root.accent : root.text3
+                      font.family: Style.font.family
+                      font.pixelSize: Style.font.heading
+                    }
+
+                    Row {
+                      visible: card.isPlaying
+                      anchors.right: parent.right
+                      anchors.bottom: parent.bottom
+                      anchors.margins: Style.space(4)
+                      spacing: 2
+                      Repeater {
+                        model: 3
+                        Rectangle {
+                          required property int index
+                          width: 2
+                          height: 4
+                          radius: 1
+                          anchors.bottom: parent.bottom
+                          color: root.accent
+                          SequentialAnimation on height {
+                            running: card.isPlaying && root.popupOpen
+                            loops: Animation.Infinite
+                            NumberAnimation { to: 10 - index * 2; duration: 380 + index * 90; easing.type: Easing.InOutSine }
+                            NumberAnimation { to: 3; duration: 380 + index * 90; easing.type: Easing.InOutSine }
+                          }
+                        }
+                      }
+                    }
+                  }
+
+                  // Title / artist / app.
+                  Column {
+                    width: parent.width - art.width - transport.width - Style.space(20)
+                    anchors.verticalCenter: parent.verticalCenter
+                    spacing: Style.space(2)
+
+                    Text {
+                      width: parent.width
+                      textFormat: Text.PlainText
+                      text: card.p ? (card.p.trackTitle || card.p.trackArtist || "Unknown") : ""
+                      color: root.text
+                      font.family: Style.font.family
+                      font.pixelSize: Style.font.body
+                      font.bold: card.isPlaying
+                      elide: Text.ElideRight
+                    }
+                    Text {
+                      width: parent.width
+                      visible: text !== ""
+                      textFormat: Text.PlainText
+                      text: card.p && card.p.trackTitle ? (card.p.trackArtist || "") : ""
+                      color: root.text2
+                      font.family: Style.font.family
+                      font.pixelSize: Style.font.caption
+                      elide: Text.ElideRight
+                    }
+                    Text {
+                      width: parent.width
+                      textFormat: Text.PlainText
+                      text: root.appName(card.p) + (card.isPlaying ? "  ·  playing" : "  ·  paused")
+                      color: card.isPlaying ? root.accent : root.text3
+                      font.family: Style.font.family
+                      font.pixelSize: Style.font.caption
+                      elide: Text.ElideRight
+                    }
+                  }
+
+                  // Per-player transport.
+                  Row {
+                    id: transport
+                    anchors.verticalCenter: parent.verticalCenter
+                    spacing: Style.space(2)
+
+                    Repeater {
+                      model: [
+                        { glyph: "󰒮", action: "previous", big: false },
+                        { glyph: card.isPlaying ? "󰏤" : "󰐊", action: "playPause", big: true },
+                        { glyph: "󰒭", action: "next", big: false }
+                      ]
+
+                      Rectangle {
+                        id: btn
+                        required property var modelData
+                        readonly property bool can: !card.p ? false
+                          : modelData.action === "previous" ? card.p.canGoPrevious
+                          : modelData.action === "next" ? card.p.canGoNext
+                          : (card.p.canTogglePlaying || card.p.canPlay || card.p.canPause)
+                        width: modelData.big ? Style.space(30) : Style.space(24)
+                        height: width
+                        radius: width / 2
+                        color: modelData.big
+                          ? Qt.rgba(root.accent.r, root.accent.g, root.accent.b, btnArea.containsMouse ? 0.24 : 0.14)
+                          : (btnArea.containsMouse ? Qt.rgba(1, 1, 1, 0.07) : "transparent")
+                        opacity: can ? 1.0 : 0.35
+                        Behavior on color { ColorAnimation { duration: 120 } }
+
+                        Text {
+                          anchors.centerIn: parent
+                          textFormat: Text.PlainText
+                          text: btn.modelData.glyph
+                          color: btn.modelData.big ? root.accent : (btnArea.containsMouse ? root.accent : root.text2)
+                          font.family: Style.font.family
+                          font.pixelSize: btn.modelData.big ? Style.font.icon : Style.font.bodySmall
+                        }
+                        MouseArea {
+                          id: btnArea
+                          anchors.fill: parent
+                          enabled: btn.can
+                          hoverEnabled: true
+                          cursorShape: Qt.PointingHandCursor
+                          onClicked: root.act(card.p, btn.modelData.action)
+                        }
+                      }
+                    }
+                  }
+                }
+
+                // Seekable progress, when the player reports a length.
+                Item {
+                  width: parent.width
+                  height: Style.space(12)
+                  visible: card.length > 0
+
+                  Text {
+                    id: elapsed
+                    anchors.left: parent.left
+                    anchors.verticalCenter: parent.verticalCenter
+                    textFormat: Text.PlainText
+                    text: root.formatTime(card.position)
+                    color: root.text3
+                    font.family: Style.font.family
+                    font.pixelSize: Style.font.caption
+                  }
+                  Text {
+                    id: total
+                    anchors.right: parent.right
+                    anchors.verticalCenter: parent.verticalCenter
+                    textFormat: Text.PlainText
+                    text: root.formatTime(card.length)
+                    color: root.text3
+                    font.family: Style.font.family
+                    font.pixelSize: Style.font.caption
+                  }
+
+                  Item {
+                    id: seekArea
+                    anchors.left: elapsed.right
+                    anchors.right: total.left
+                    anchors.leftMargin: Style.space(8)
+                    anchors.rightMargin: Style.space(8)
+                    anchors.verticalCenter: parent.verticalCenter
+                    height: parent.height
+                    readonly property real frac: card.length > 0 ? Math.max(0, Math.min(1, card.position / card.length)) : 0
+
+                    Rectangle {
+                      anchors.verticalCenter: parent.verticalCenter
+                      width: parent.width
+                      height: 3
+                      radius: 1.5
+                      color: Qt.rgba(1, 1, 1, 0.08)
+                      Rectangle {
+                        width: seekArea.frac * parent.width
+                        height: parent.height
+                        radius: parent.radius
+                        color: card.isPlaying ? root.accent : root.text3
+                      }
+                    }
+                    Rectangle {
+                      visible: seek.containsMouse
+                      x: seekArea.frac * seekArea.width - width / 2
+                      anchors.verticalCenter: parent.verticalCenter
+                      width: 9
+                      height: 9
+                      radius: 4.5
+                      color: Color.foreground
+                      border.width: 2
+                      border.color: root.accent
+                    }
+                    MouseArea {
+                      id: seek
+                      anchors.fill: parent
+                      hoverEnabled: true
+                      enabled: card.p !== null && card.p.canSeek
+                      cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+                      onClicked: function(mouse) {
+                        if (card.p && card.length > 0)
+                          card.p.position = Math.max(0, Math.min(1, mouse.x / width)) * card.length
+                      }
+                    }
+                  }
+                }
               }
             }
           }
-
-          Rectangle {
-            x: (progress.length > 0 ? Math.min(1, progress.position / progress.length) : 0) * track.width - width / 2
-            anchors.verticalCenter: parent.verticalCenter
-            width: seek.containsMouse ? 10 : 7
-            height: width
-            radius: width / 2
-            color: Color.foreground
-            border.width: 2
-            border.color: Color.accent
-            Behavior on width { NumberAnimation { duration: 120 } }
-          }
-
-          MouseArea {
-            id: seek
-            anchors.fill: parent
-            hoverEnabled: true
-            enabled: root.player !== null && root.player.canSeek
-            cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
-            onClicked: function(mouse) {
-              if (!root.player || progress.length <= 0) return
-              root.player.position = Math.max(0, Math.min(1, mouse.x / width)) * progress.length
-            }
-          }
-        }
-
-        Item {
-          width: parent.width
-          height: elapsed.implicitHeight
-          Text {
-            id: elapsed
-            textFormat: Text.PlainText
-            text: root.formatTime(progress.position)
-            color: Qt.rgba(Color.popups.text.r, Color.popups.text.g, Color.popups.text.b, 0.45)
-            font.family: Style.font.family
-            font.pixelSize: Style.font.caption
-          }
-          Text {
-            anchors.right: parent.right
-            textFormat: Text.PlainText
-            text: root.formatTime(progress.length)
-            color: Qt.rgba(Color.popups.text.r, Color.popups.text.g, Color.popups.text.b, 0.45)
-            font.family: Style.font.family
-            font.pixelSize: Style.font.caption
-          }
         }
       }
 
-      // Transport.
-      Row {
-        anchors.horizontalCenter: parent.horizontalCenter
+      // Empty state.
+      Column {
+        width: parent.width
+        visible: root.players.length === 0
         spacing: Style.space(6)
-        visible: root.hasMedia
+        topPadding: Style.space(6)
+        bottomPadding: Style.space(2)
 
-        Button {
-          iconText: "󰒮"
-          foreground: Color.popups.text
-          horizontalPadding: Style.spacing.controlPaddingX
-          verticalPadding: Style.spacing.controlPaddingY
-          enabled: root.player !== null && root.player.canGoPrevious
-          opacity: enabled ? 1.0 : 0.4
-          onClicked: root.act("previous")
+        Text {
+          anchors.horizontalCenter: parent.horizontalCenter
+          textFormat: Text.PlainText
+          text: "󰝚"
+          color: root.text3
+          font.family: Style.font.family
+          font.pixelSize: Style.font.displayLarge
         }
-        Button {
-          iconText: root.playing ? "󰏤" : "󰐊"
-          foreground: Color.accent
-          horizontalPadding: Style.spacing.panelGap
-          verticalPadding: Style.spacing.controlPaddingY
-          iconSize: Style.font.iconLarge
-          enabled: root.player !== null && (root.player.canTogglePlaying || root.player.canPlay || root.player.canPause)
-          opacity: enabled ? 1.0 : 0.4
-          onClicked: root.act("playPause")
-        }
-        Button {
-          iconText: "󰒭"
-          foreground: Color.popups.text
-          horizontalPadding: Style.spacing.controlPaddingX
-          verticalPadding: Style.spacing.controlPaddingY
-          enabled: root.player !== null && root.player.canGoNext
-          opacity: enabled ? 1.0 : 0.4
-          onClicked: root.act("next")
+        Text {
+          anchors.horizontalCenter: parent.horizontalCenter
+          textFormat: Text.PlainText
+          text: "No media open"
+          color: root.text2
+          font.family: Style.font.family
+          font.pixelSize: Style.font.body
         }
       }
 
-      // Nothing playing: offer Spotify.
+      // Quick access to Spotify when it is not running.
       Button {
         anchors.horizontalCenter: parent.horizontalCenter
-        visible: !root.hasMedia
+        visible: !root.spotifyOpen
         text: "Open Spotify"
         iconText: ""
-        foreground: Color.popups.text
+        foreground: root.text
         horizontalPadding: Style.spacing.controlPaddingX
         verticalPadding: Style.spacing.controlPaddingY
         onClicked: {
           if (root.bar) root.bar.run("omarchy-launch-or-focus spotify")
           root.popupOpen = false
-        }
-      }
-
-      // Several players: pick which one the bar follows.
-      PanelSeparator {
-        visible: root.sourcePlayers.length > 1
-        foreground: Color.popups.text
-      }
-
-      Column {
-        id: sourceList
-        visible: root.sourcePlayers.length > 1
-        width: parent.width
-        spacing: Style.space(2)
-
-        Repeater {
-          model: root.sourcePlayers
-
-          Rectangle {
-            id: sourceRow
-            required property var modelData
-            readonly property var p: modelData
-            readonly property bool selected: root.player && p
-              && root.keyOf(root.player) === root.keyOf(p)
-
-            width: sourceList.width
-            height: Style.space(28)
-            radius: Style.space(8)
-            color: selected ? Qt.rgba(Color.accent.r, Color.accent.g, Color.accent.b, 0.10)
-              : (rowArea.containsMouse ? Qt.rgba(1, 1, 1, 0.04) : "transparent")
-            Behavior on color { ColorAnimation { duration: 120 } }
-
-            Row {
-              anchors.fill: parent
-              anchors.leftMargin: Style.space(8)
-              anchors.rightMargin: Style.space(8)
-              spacing: Style.space(8)
-
-              Text {
-                anchors.verticalCenter: parent.verticalCenter
-                textFormat: Text.PlainText
-                text: sourceRow.p && sourceRow.p.isPlaying ? "󰏤" : "󰐊"
-                color: sourceRow.selected ? Color.accent : Color.popups.text
-                font.family: Style.font.family
-                font.pixelSize: Style.font.bodySmall
-              }
-              Text {
-                anchors.verticalCenter: parent.verticalCenter
-                width: parent.width - Style.space(24)
-                textFormat: Text.PlainText
-                text: sourceRow.p ? ((sourceRow.p.identity || sourceRow.p.desktopEntry || "Player")
-                  + (sourceRow.p.trackTitle ? "  ·  " + sourceRow.p.trackTitle : "")) : ""
-                color: sourceRow.selected ? Color.popups.text : Qt.rgba(Color.popups.text.r, Color.popups.text.g, Color.popups.text.b, 0.62)
-                font.family: Style.font.family
-                font.pixelSize: Style.font.bodySmall
-                elide: Text.ElideRight
-              }
-            }
-
-            MouseArea {
-              id: rowArea
-              anchors.fill: parent
-              hoverEnabled: true
-              cursorShape: Qt.PointingHandCursor
-              onClicked: root.pinnedKey = sourceRow.selected ? "" : root.keyOf(sourceRow.p)
-            }
-          }
         }
       }
     }

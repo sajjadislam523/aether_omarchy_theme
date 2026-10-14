@@ -57,7 +57,7 @@ base-size = 12
 
 [popups]
 background       = "#101720"
-background-alpha = 0.94
+background-alpha = 0.98
 text             = "#E8F0F7"
 border           = "#263544"
 border-alpha     = 1.0
