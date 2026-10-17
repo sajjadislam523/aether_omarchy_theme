@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Clocks are correct the instant the laptop wakes. QML timers run on the
+  monotonic clock, which stops during suspend, so the bar and lock-screen
+  clocks showed the pre-sleep time for up to a minute. The bar now refreshes
+  on logind's wake-up signal (event-driven `gdbus monitor`). The lock clock
+  ticks each second while it is showing.
 - Media panel is now a central control panel: one card per open media source,
   each with its own ◀ ❚❚ ▶ and seekable progress; "N sources · N playing"
   summary, Pause all, and Open Spotify when it isn't running. The bar shows

@@ -93,6 +93,12 @@ Remote: https://github.com/sajjadislam523/aether_omarchy_theme (public).
   runs from a PROMPT_COMMAND entry queued ahead of `__ghostty_hook`. To
   reproduce Ghostty's startup in a recordable pty:
   `env TERM=xterm-ghostty GHOSTTY_BASH_INJECT=1 ENV=/usr/share/ghostty/shell-integration/bash/ghostty.bash script -q -c "bash --posix" log`.
+- **Clocks after suspend:** QML Timers/`SystemClock` use the monotonic clock,
+  which stops during sleep, so minute ticks fire late after resume. The
+  system time itself is fine (RTC restored by the kernel). `aether.bar` runs
+  `gdbus monitor` on `org.freedesktop.login1` and calls
+  `omarchy-shell -q omarchy.clock refresh` on `PrepareForSleep (false,)`.
+  `LockView` uses `SystemClock.Seconds`, enabled only while shown.
 - Omarchy also ships an unrelated pacman package/app called `aether` (a
   wallpaper-to-theme generator). Different thing, same name.
 

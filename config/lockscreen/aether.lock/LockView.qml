@@ -105,9 +105,14 @@ Item {
     text: "●".repeat(passwordInput.text.length)
   }
 
+  // Seconds, not minutes: the clock's timer freezes during suspend, so with
+  // minute precision the lock screen showed the pre-sleep time for up to a
+  // minute after waking. Ticking each second (only while the lock screen is
+  // up) makes it correct within a second.
   SystemClock {
     id: clock
-    precision: SystemClock.Minutes
+    precision: SystemClock.Seconds
+    enabled: root.loadBackground
   }
 
   readonly property var mediaPlayer: {

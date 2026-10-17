@@ -1237,6 +1237,32 @@ Item {
     }
   }
 
+  // AETHER: refresh the clock the moment the machine wakes. Quickshell's
+  // SystemClock (like every QML Timer) runs on the monotonic clock, which
+  // stops during suspend, so after waking the bar kept showing the pre-sleep
+  // time until its frozen minute tick fired (up to a minute later). logind
+  // announces wake-up with PrepareForSleep(false). gdbus just blocks on the
+  // system bus waiting for it, so nothing polls.
+  Process {
+    id: resumeWatch
+    running: true
+    command: ["gdbus", "monitor", "--system", "--dest", "org.freedesktop.login1",
+      "--object-path", "/org/freedesktop/login1"]
+    stdout: SplitParser {
+      onRead: function(line) {
+        if (String(line).indexOf("PrepareForSleep (false") !== -1)
+          root.run("omarchy-shell -q omarchy.clock refresh")
+      }
+    }
+    onExited: resumeWatchRestart.start()
+  }
+
+  Timer {
+    id: resumeWatchRestart
+    interval: 5000
+    onTriggered: resumeWatch.running = true
+  }
+
   component BarPanel: PanelWindow {
     id: barWindow
 
